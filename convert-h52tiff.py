@@ -7,15 +7,18 @@ Axisorder is assumed to be `cyx`. The script will output one .tiff file per chan
 import logging
 import argparse
 import os
+import sys
 import glob
 
+import h5py
+import pytiff
 
-logger = logging.getLogger(f"{__file__}.{__name__}")
-
-
-def raise_if_not_exists(some_path):
-    if not os.path.exists(some_path):
-        raise argparse.ArgumentError('Given path does not seem to exist.')
+logger = logging.getLogger(f"{__file__}")
+logging.basicConfig(
+    filename=f'log_{__file__}.txt',
+    level=logging.DEBUG,
+    filemode='w')
+logger.addHandler(logging.StreamHandler())
 
 
 def parse_args():
@@ -39,7 +42,6 @@ def parse_args():
         'output_folder',
         metavar='output-folder',
         help=('Output folder for generated .tiff files'),
-        type=raise_if_not_exists,
     )
     p.add_argument(
         '-p', '--naming-pattern',
@@ -50,8 +52,16 @@ def parse_args():
         ),
         default='{original_filename}_{exported_channel}'
     )
+    p.add_argument(
+        '--no-big-tiff',
+        help=(
+            'Per default it is attempted to write bigtiff files. '
+            'Use this command line flag to write regular tiff files.'
+        ),
+        action='store_true'
+    )
 
-    args = p.parse_args(['somewhere', 'elsewhere'])
+    args = p.parse_args()
     return args
 
 
